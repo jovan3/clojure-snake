@@ -6,10 +6,10 @@
 
 (def board-size 10) ;; square board for simplicity
 
-(def left [-1 0])
-(def right [1 0])
-(def up [0 -1])
-(def down [0 1])
+(def up [-1 0])
+(def down [1 0])
+(def left [0 -1])
+(def right [0 1])
 
 (def board 
     (vec (for [x (range board-size)]
@@ -23,9 +23,9 @@
   (map #(mod (+ %1 %2) board-size) x y))
 
 (defn move-snake [snake direction]
- (cons 
-   (into [] (+mod (first snake) direction))
-   (pop snake)))
+ (vec (cons 
+        (into [] (+mod (first snake) direction))
+        (pop snake))))
 
 (defn board-with-snake [board snake]
     (loop [piece 0
@@ -37,10 +37,19 @@
 (defn board-with-apple [board apple]
     (assoc-in board apple "X"))
 
+(defn loop-snake [b s d]
+  (loop [board b snake s direction d]
+    (let [moved-snake (move-snake snake direction)]
+      (dotimes [n 1000] (println "\b"))
+      (print-board (board-with-snake board moved-snake))
+      (Thread/sleep 1000)
+      (recur board moved-snake direction))))
+  
 (defn -main
   [& args]
   (let [snake [[0 0] [0 1] [0 2]]]
+    (loop-snake board snake left)))
     ;(println (assoc-in board [1 1] "*"))
     ;;(print-board (board-with-snake board snake))
     ;;(print-board (board-with-apple board [2 2]))))
-    (println (move-snake snake left))))
+    ;;(println (move-snake snake left))))
