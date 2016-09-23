@@ -1,6 +1,10 @@
 (ns snake.core
   (:gen-class))
 
+(require '[lanterna.screen :as s])
+
+(def scr (s/get-screen :swing))
+
 (defn zero-vector [size]
     (for [x (range size)] 0))
 
@@ -12,12 +16,13 @@
 (def right [0 1])
 
 (def board 
-    (vec (for [x (range board-size)]
-          (into [] (zero-vector board-size)))))
+  (vec (for [x (range board-size)]
+         (into [] (zero-vector board-size)))))
 
 (defn print-board [board]
-    (dotimes [row board-size]
-        (println (nth board row)))) 
+  (dotimes [row board-size]
+    (s/put-string scr 0 row (clojure.string/join " " (nth board row)))) 
+  (s/redraw scr))
 
 (defn +mod [x y]
   (map #(mod (+ %1 %2) board-size) x y))
@@ -40,13 +45,17 @@
 (defn loop-snake [b s d]
   (loop [board b snake s direction d]
     (let [moved-snake (move-snake snake direction)]
+      ;(s/put-string scr 25 10 (s/get-key scr))
       (dotimes [n 1000] (println "\b"))
       (print-board (board-with-snake board moved-snake))
       (Thread/sleep 1000)
       (recur board moved-snake direction))))
+
   
 (defn -main
   [& args]
+  (s/start scr)
+  (s/redraw scr)
   (let [snake [[0 0] [0 1] [0 2]]]
     (loop-snake board snake left)))
     ;(println (assoc-in board [1 1] "*"))
