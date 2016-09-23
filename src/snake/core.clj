@@ -46,7 +46,7 @@
   (loop [board b snake s direction d]
     (let [moved-snake (move-snake snake direction)]
       ;(s/put-string scr 25 10 (s/get-key scr))
-      (dotimes [n 1000] (println "\b"))
+      (s/clear scr)
       (print-board (board-with-snake board moved-snake))
       (Thread/sleep 1000)
       (recur board moved-snake direction))))
