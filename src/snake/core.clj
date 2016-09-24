@@ -42,16 +42,24 @@
 (defn board-with-apple [board apple]
     (assoc-in board apple "X"))
 
+(defn new-direction [key old-direction]
+  (cond
+    (= key :up) up
+    (= key :down) down
+    (= key :left) left
+    (= key :right) right
+    :else old-direction))
+
 (defn loop-snake [b s d]
   (loop [board b snake s direction d]
     (let [moved-snake (move-snake snake direction)]
-      ;(s/put-string scr 25 10 (s/get-key scr))
       (s/clear scr)
       (print-board (board-with-snake board moved-snake))
+      (s/redraw scr)
       (Thread/sleep 1000)
-      (recur board moved-snake direction))))
-
-  
+      (let [new-dir (new-direction (s/get-key scr) direction)] 
+        (recur board moved-snake new-dir)))))
+      
 (defn -main
   [& args]
   (s/start scr)
