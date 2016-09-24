@@ -27,10 +27,20 @@
 (defn +mod [x y]
   (map #(mod (+ %1 %2) board-size) x y))
 
-(defn move-snake [snake direction]
- (vec (cons 
-        (into [] (+mod (first snake) direction))
-        (pop snake))))
+(defn put-apple [snake]
+  (loop [new-apple [(rand-int board-size) (rand-int board-size)]]
+    (cond
+      (.contains snake new-apple) (recur snake)
+      :else new-apple)))
+
+(defn move-snake [snake direction apple]
+  (let [new-head (into [] (+mod (first snake) direction))]
+      (cond
+        (.contains snake new-head) nil
+        (= new-head apple)  
+          (let [new-snake (vec (cons new-head snake))]
+            { :snake new-snake :apple (put-apple new-snake) })
+        :else {:snake (vec (cons new-head (pop snake))) :apple apple})))
 
 (defn board-with-snake [board snake]
     (loop [piece 0
@@ -50,23 +60,27 @@
     (= key :right) right
     :else old-direction))
 
-(defn loop-snake [b s d]
-  (loop [board b snake s direction d]
-    (let [moved-snake (move-snake snake direction)]
+(defn loop-snake [b s d a]
+  (loop [board b snake s direction d apple a]
+    (let [moved-snake-apple (move-snake snake direction apple)]
       (s/clear scr)
-      (print-board (board-with-snake board moved-snake))
-      (s/redraw scr)
-      (Thread/sleep 1000)
-      (let [new-dir (new-direction (s/get-key scr) direction)] 
-        (recur board moved-snake new-dir)))))
-      
+      (when-not (nil? moved-snake-apple)
+        (let [{moved-snake :snake new-apple :apple} moved-snake-apple]
+          (print-board (board-with-apple (board-with-snake board moved-snake) new-apple))
+          (s/redraw scr)
+          (Thread/sleep 1000)
+          (let [new-dir (new-direction (s/get-key scr) direction)] 
+            (recur board moved-snake new-dir new-apple)))))))
+
+(defn game-over []
+  (s/clear scr)
+  (s/put-string scr 5 5 "GAME OVER")
+  (s/redraw scr))
+
 (defn -main
   [& args]
   (s/start scr)
   (s/redraw scr)
   (let [snake [[0 0] [0 1] [0 2]]]
-    (loop-snake board snake left)))
-    ;(println (assoc-in board [1 1] "*"))
-    ;;(print-board (board-with-snake board snake))
-    ;;(print-board (board-with-apple board [2 2]))))
-    ;;(println (move-snake snake left))))
+    (loop-snake board snake left [5 5]))
+    (game-over))
